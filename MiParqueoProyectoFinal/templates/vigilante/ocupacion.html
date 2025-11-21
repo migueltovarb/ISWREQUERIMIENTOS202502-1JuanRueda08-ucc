@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Ocupación del Parqueadero - MiParqueo{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6">
+            <i class="bi bi-bar-chart-fill text-primary"></i> 
+            Ocupación Actual del Parqueadero
+        </h1>
+        <p class="text-muted">Estado en tiempo real de todos los espacios</p>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle-fill text-success display-4"></i>
+                <h3 class="mt-2 mb-0">{{ libres }}</h3>
+                <p class="text-muted mb-0">Libres</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <i class="bi bi-x-circle-fill text-danger display-4"></i>
+                <h3 class="mt-2 mb-0">{{ ocupados }}</h3>
+                <p class="text-muted mb-0">Ocupados</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-check-fill text-warning display-4"></i>
+                <h3 class="mt-2 mb-0">{{ reservados }}</h3>
+                <p class="text-muted mb-0">Reservados</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-secondary">
+            <div class="card-body text-center">
+                <i class="bi bi-slash-circle-fill text-secondary display-4"></i>
+                <h3 class="mt-2 mb-0">{{ bloqueados }}</h3>
+                <p class="text-muted mb-0">Bloqueados</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Barra de progreso -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-pie-chart"></i> Ocupación General
+                </h5>
+                <div class="progress" style="height: 30px;">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {{ libres|floatformat:0|default:0 }}%"
+                         aria-valuenow="{{ libres }}" aria-valuemin="0" aria-valuemax="{{ total }}">
+                        {{ libres }} Libres
+                    </div>
+                    <div class="progress-bar bg-danger" role="progressbar" 
+                         style="width: {{ ocupados|floatformat:0|default:0 }}%"
+                         aria-valuenow="{{ ocupados }}" aria-valuemin="0" aria-valuemax="{{ total }}">
+                        {{ ocupados }} Ocupados
+                    </div>
+                    <div class="progress-bar bg-warning" role="progressbar" 
+                         style="width: {{ reservados|floatformat:0|default:0 }}%"
+                         aria-valuenow="{{ reservados }}" aria-valuemin="0" aria-valuemax="{{ total }}">
+                        {{ reservados }} Reservados
+                    </div>
+                    <div class="progress-bar bg-secondary" role="progressbar" 
+                         style="width: {{ bloqueados|floatformat:0|default:0 }}%"
+                         aria-valuenow="{{ bloqueados }}" aria-valuemin="0" aria-valuemax="{{ total }}">
+                        {{ bloqueados }} Bloqueados
+                    </div>
+                </div>
+                <p class="text-center mt-2 mb-0">
+                    <strong>Total de espacios:</strong> {{ total }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Listado de espacios -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong>Leyenda:</strong>
+            <span class="badge bg-success ms-2">LIBRE</span>
+            <span class="badge bg-warning text-dark ms-2">RESERVADO</span>
+            <span class="badge bg-danger ms-2">OCUPADO</span>
+            <span class="badge bg-secondary ms-2">BLOQUEADO</span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    {% for espacio in espacios %}
+    <div class="col-md-4 col-lg-3 col-xl-2">
+        <div class="card {% if espacio.estado == 'LIBRE' %}border-success{% elif espacio.estado == 'OCUPADO' %}border-danger{% elif espacio.estado == 'RESERVADO' %}border-warning{% else %}border-secondary{% endif %}">
+            <div class="card-body text-center p-3">
+                <h5 class="mb-1">
+                    {% if espacio.tipo == 'CARRO' %}
+                    <i class="bi bi-car-front-fill text-primary"></i>
+                    {% elif espacio.tipo == 'MOTO' %}
+                    <i class="bi bi-bicycle text-warning"></i>
+                    {% else %}
+                    <i class="bi bi-universal-access text-info"></i>
+                    {% endif %}
+                </h5>
+                <h6 class="fw-bold mb-1">{{ espacio.numero }}</h6>
+                <small class="text-muted d-block mb-2">{{ espacio.get_tipo_display }}</small>
+                
+                <span class="badge badge-estado 
+                    {% if espacio.estado == 'LIBRE' %}bg-success
+                    {% elif espacio.estado == 'OCUPADO' %}bg-danger
+                    {% elif espacio.estado == 'RESERVADO' %}bg-warning text-dark
+                    {% else %}bg-secondary{% endif %}">
+                    {{ espacio.get_estado_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            No hay espacios de parqueadero registrados en el sistema.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'vigilante_validar_placa' %}" class="btn btn-primary">
+            <i class="bi bi-search"></i> Validar Placa
+        </a>
+        <a href="{% url 'vigilante_salida' %}" class="btn btn-outline-primary">
+            <i class="bi bi-box-arrow-right"></i> Registrar Salida
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refrescar cada 30 segundos
+    setTimeout(function(){
+        location.reload();
+    }, 30000);
+</script>
+{% endblock %}
+

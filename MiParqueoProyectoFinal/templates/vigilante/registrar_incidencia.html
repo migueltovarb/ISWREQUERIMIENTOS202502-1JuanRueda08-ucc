@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Incidencia - MiParqueo{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="{% url 'listar_incidencias' %}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Volver a Incidencias
+        </a>
+        <h1 class="display-6">
+            <i class="bi bi-exclamation-triangle text-warning"></i> 
+            Registrar Nueva Incidencia
+        </h1>
+        <p class="text-muted">Reporte situaciones irregulares en el parqueadero</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="tipo" class="form-label">
+                            <i class="bi bi-tag"></i> Tipo de Incidencia *
+                        </label>
+                        <select class="form-select" id="tipo" name="tipo" required>
+                            <option value="">Seleccione un tipo...</option>
+                            <option value="SIN_RESERVA">Vehículo sin reserva</option>
+                            <option value="DANIO_ESPACIO">Daño en espacio</option>
+                            <option value="OCUPACION_INDEBIDA">Ocupación indebida</option>
+                            <option value="OTRO">Otro</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            Seleccione el tipo de incidencia que desea reportar
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="espacio" class="form-label">
+                            <i class="bi bi-car-front"></i> Espacio Relacionado (Opcional)
+                        </label>
+                        <select class="form-select" id="espacio" name="espacio">
+                            <option value="">Ninguno (si no aplica)</option>
+                            {% for espacio in espacios %}
+                            <option value="{{ espacio.id }}">
+                                Espacio {{ espacio.numero }} - {{ espacio.get_tipo_display }} 
+                                ({{ espacio.get_estado_display }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">
+                            Seleccione el espacio si la incidencia está relacionada con uno específico
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">
+                            <i class="bi bi-file-text"></i> Descripción *
+                        </label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" 
+                                  rows="5" placeholder="Describa detalladamente la incidencia..." required></textarea>
+                        <small class="form-text text-muted">
+                            Proporcione todos los detalles relevantes sobre la incidencia
+                        </small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Importante:</strong> La incidencia será registrada con su usuario y la fecha/hora actual.
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="bi bi-check-circle"></i> Registrar Incidencia
+                        </button>
+                        <a href="{% url 'listar_incidencias' %}" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-info-circle"></i> Tipos de Incidencias
+                </h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <strong>Vehículo sin reserva:</strong><br>
+                        <small>Cuando un vehículo ocupa un espacio sin tener reserva activa</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Daño en espacio:</strong><br>
+                        <small>Cuando un espacio presenta daños físicos o problemas</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Ocupación indebida:</strong><br>
+                        <small>Cuando un vehículo ocupa un espacio incorrecto (ej: carro en espacio de moto)</small>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Otro:</strong><br>
+                        <small>Cualquier otra situación irregular que requiera reporte</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

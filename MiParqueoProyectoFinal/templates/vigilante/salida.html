@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Salida - MiParqueo{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6">
+            <i class="bi bi-box-arrow-right text-primary"></i> 
+            Registrar Salida de Vehículos
+        </h1>
+        <p class="text-muted">Vehículos actualmente en el parqueadero</p>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{% url 'vigilante_validar_placa' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Volver a Validar Placa
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% if reservas %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong>{{ reservas.count }}</strong> vehículo(s) actualmente en el parqueadero
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th><i class="bi bi-hash"></i> ID</th>
+                        <th><i class="bi bi-person"></i> Usuario</th>
+                        <th><i class="bi bi-car-front"></i> Espacio</th>
+                        <th><i class="bi bi-tag"></i> Placa</th>
+                        <th><i class="bi bi-truck"></i> Tipo</th>
+                        <th><i class="bi bi-clock"></i> Horario Reservado</th>
+                        <th><i class="bi bi-box-arrow-in-right"></i> Hora Entrada</th>
+                        <th class="text-center"><i class="bi bi-gear"></i> Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reserva in reservas %}
+                    <tr>
+                        <td><strong>#{{ reserva.id }}</strong></td>
+                        <td>{{ reserva.usuario.get_full_name|default:reserva.usuario.username }}</td>
+                        <td>
+                            <span class="badge bg-primary">
+                                Espacio {{ reserva.espacio.numero }}
+                            </span>
+                        </td>
+                        <td><code class="fs-6">{{ reserva.placa }}</code></td>
+                        <td>{{ reserva.get_tipo_vehiculo_display }}</td>
+                        <td class="text-nowrap">
+                            {{ reserva.hora_inicio|time:"H:i" }} - 
+                            {{ reserva.hora_fin|time:"H:i" }}
+                        </td>
+                        <td>
+                            <span class="badge bg-success">
+                                {{ reserva.hora_entrada|time:"H:i" }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-danger btn-sm" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalSalida{{ reserva.id }}">
+                                <i class="bi bi-box-arrow-right"></i> Registrar Salida
+                            </button>
+                            
+                            <!-- Modal de confirmación -->
+                            <div class="modal fade" id="modalSalida{{ reserva.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title">
+                                                <i class="bi bi-box-arrow-right"></i> 
+                                                Confirmar Salida
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" 
+                                                    data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>¿Confirma la salida del siguiente vehículo?</p>
+                                            <ul>
+                                                <li><strong>Placa:</strong> {{ reserva.placa }}</li>
+                                                <li><strong>Espacio:</strong> {{ reserva.espacio.numero }}</li>
+                                                <li><strong>Usuario:</strong> 
+                                                    {{ reserva.usuario.get_full_name|default:reserva.usuario.username }}
+                                                </li>
+                                                <li><strong>Hora de entrada:</strong> 
+                                                    {{ reserva.hora_entrada|time:"H:i" }}
+                                                </li>
+                                            </ul>
+                                            <div class="alert alert-info mb-0">
+                                                <i class="bi bi-info-circle"></i>
+                                                Se liberará el espacio automáticamente.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" 
+                                                    data-bs-dismiss="modal">
+                                                Cancelar
+                                            </button>
+                                            <a href="{% url 'vigilante_registrar_salida' reserva.id %}" 
+                                               class="btn btn-danger">
+                                                <i class="bi bi-check-circle"></i> Confirmar Salida
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i>
+            No hay vehículos en el parqueadero en este momento.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

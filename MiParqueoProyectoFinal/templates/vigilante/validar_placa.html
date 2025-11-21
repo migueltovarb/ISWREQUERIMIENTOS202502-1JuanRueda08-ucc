@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Validar Placa - MiParqueo{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6">
+            <i class="bi bi-search text-primary"></i> 
+            Validar Reserva por Placa
+        </h1>
+        <p class="text-muted">Ingrese la placa del vehículo para verificar su reserva</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-keyboard"></i> Buscar Reserva
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="placa" class="form-label">
+                            <i class="bi bi-tag"></i> Placa del Vehículo
+                        </label>
+                        <input type="text" class="form-control form-control-lg text-uppercase" 
+                               id="placa" name="placa" 
+                               placeholder="Ej: ABC123" 
+                               maxlength="10" 
+                               value="{{ placa_buscada|default:'' }}"
+                               required autofocus>
+                        <small class="form-text text-muted">
+                            Ingrese la placa sin espacios ni guiones
+                        </small>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-search"></i> Buscar Reserva
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        {% if placa_buscada %}
+            {% if reserva %}
+            <div class="card border-success shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-check-circle"></i> Reserva Encontrada
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-success mb-3">
+                        <i class="bi bi-tag-fill"></i> {{ reserva.placa }}
+                    </h4>
+                    
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><i class="bi bi-person"></i> <strong>Usuario:</strong></td>
+                            <td>{{ reserva.usuario.get_full_name|default:reserva.usuario.username }}</td>
+                        </tr>
+                        <tr>
+                            <td><i class="bi bi-car-front"></i> <strong>Espacio:</strong></td>
+                            <td>
+                                <span class="badge bg-primary">
+                                    Espacio {{ reserva.espacio.numero }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i class="bi bi-calendar"></i> <strong>Fecha:</strong></td>
+                            <td>{{ reserva.fecha|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td><i class="bi bi-clock"></i> <strong>Horario:</strong></td>
+                            <td>
+                                {{ reserva.hora_inicio|time:"H:i" }} - 
+                                {{ reserva.hora_fin|time:"H:i" }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i class="bi bi-truck"></i> <strong>Vehículo:</strong></td>
+                            <td>{{ reserva.get_tipo_vehiculo_display }}</td>
+                        </tr>
+                        <tr>
+                            <td><i class="bi bi-info-circle"></i> <strong>Estado:</strong></td>
+                            <td>
+                                <span class="badge bg-success">
+                                    {{ reserva.get_estado_display }}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    {% if not reserva.hora_entrada %}
+                    <hr>
+                    <div class="d-grid">
+                        <a href="{% url 'vigilante_registrar_entrada' reserva.id %}" 
+                           class="btn btn-success btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Registrar Entrada
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0 mt-3">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Entrada ya registrada:</strong> {{ reserva.hora_entrada|time:"H:i" }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="card border-warning shadow-sm">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> No se encontró reserva
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">
+                        No existe ninguna reserva activa para la placa 
+                        <strong>{{ placa_buscada }}</strong> 
+                        en la fecha de hoy.
+                    </p>
+                    <hr>
+                    <p class="mb-0 text-muted">
+                        <small>
+                            <i class="bi bi-info-circle"></i>
+                            Verifique que la placa esté correcta y que la reserva 
+                            corresponda a la fecha actual.
+                        </small>
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <i class="bi bi-search display-1 text-muted"></i>
+                <p class="text-muted mt-3 mb-0">
+                    Ingrese una placa para buscar la reserva correspondiente
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex gap-2">
+            <a href="{% url 'vigilante_salida' %}" class="btn btn-outline-primary">
+                <i class="bi bi-box-arrow-right"></i> Registrar Salida
+            </a>
+            <a href="{% url 'vigilante_ocupacion' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-bar-chart"></i> Ver Ocupación
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Convertir placa a mayúsculas automáticamente
+    document.getElementById('placa').addEventListener('input', function(e) {
+        e.target.value = e.target.value.toUpperCase();
+    });
+</script>
+{% endblock %}
+

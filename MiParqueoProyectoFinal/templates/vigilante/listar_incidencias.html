@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Incidencias - MiParqueo{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6">
+            <i class="bi bi-exclamation-triangle text-warning"></i> 
+            Incidencias Reportadas
+        </h1>
+        <p class="text-muted">Listado de todas las incidencias registradas en el sistema</p>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <a href="{% url 'registrar_incidencia' %}" class="btn btn-warning">
+            <i class="bi bi-plus-circle"></i> Registrar Nueva Incidencia
+        </a>
+    </div>
+    <div class="col-md-6">
+        <form method="get" action="{% url 'listar_incidencias' %}" class="d-flex">
+            <select class="form-select me-2" name="tipo" onchange="this.form.submit()">
+                <option value="">Todos los tipos</option>
+                <option value="SIN_RESERVA" {% if tipo_filtro == 'SIN_RESERVA' %}selected{% endif %}>
+                    Vehículo sin reserva
+                </option>
+                <option value="DANIO_ESPACIO" {% if tipo_filtro == 'DANIO_ESPACIO' %}selected{% endif %}>
+                    Daño en espacio
+                </option>
+                <option value="OCUPACION_INDEBIDA" {% if tipo_filtro == 'OCUPACION_INDEBIDA' %}selected{% endif %}>
+                    Ocupación indebida
+                </option>
+                <option value="OTRO" {% if tipo_filtro == 'OTRO' %}selected{% endif %}>
+                    Otro
+                </option>
+            </select>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% if incidencias %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-warning">
+                    <tr>
+                        <th><i class="bi bi-hash"></i> ID</th>
+                        <th><i class="bi bi-tag"></i> Tipo</th>
+                        <th><i class="bi bi-car-front"></i> Espacio</th>
+                        <th><i class="bi bi-file-text"></i> Descripción</th>
+                        <th><i class="bi bi-person"></i> Reportado por</th>
+                        <th><i class="bi bi-calendar"></i> Fecha y Hora</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for incidencia in incidencias %}
+                    <tr>
+                        <td><strong>#{{ incidencia.id }}</strong></td>
+                        <td>
+                            {% if incidencia.tipo == 'SIN_RESERVA' %}
+                                <span class="badge bg-danger">{{ incidencia.get_tipo_display }}</span>
+                            {% elif incidencia.tipo == 'DANIO_ESPACIO' %}
+                                <span class="badge bg-warning text-dark">{{ incidencia.get_tipo_display }}</span>
+                            {% elif incidencia.tipo == 'OCUPACION_INDEBIDA' %}
+                                <span class="badge bg-info">{{ incidencia.get_tipo_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ incidencia.get_tipo_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if incidencia.espacio %}
+                                <span class="badge bg-primary">
+                                    Espacio {{ incidencia.espacio.numero }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>{{ incidencia.descripcion|truncatewords:15 }}</small>
+                        </td>
+                        <td>
+                            {{ incidencia.reportado_por.get_full_name|default:incidencia.reportado_por.username }}
+                        </td>
+                        <td class="text-nowrap">
+                            {{ incidencia.fecha_hora|date:"d/m/Y" }}<br>
+                            <small class="text-muted">{{ incidencia.fecha_hora|time:"H:i" }}</small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="alert alert-light mt-3">
+            <strong>Total de incidencias:</strong> {{ incidencias.count }}
+            {% if tipo_filtro %}
+                <span class="text-muted">(filtrado por tipo: {{ tipo_filtro }})</span>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i>
+            No hay incidencias registradas en el sistema.
+            {% if tipo_filtro %}
+                <a href="{% url 'listar_incidencias' %}" class="alert-link">
+                    Ver todas las incidencias
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if stats %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-bar-chart"></i> Resumen por Tipo
+                </h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Sin Reserva:</strong> 
+                        <span class="badge bg-danger">{{ stats.SIN_RESERVA }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Daño en Espacio:</strong> 
+                        <span class="badge bg-warning text-dark">{{ stats.DANIO_ESPACIO }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Ocupación Indebida:</strong> 
+                        <span class="badge bg-info">{{ stats.OCUPACION_INDEBIDA }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Otro:</strong> 
+                        <span class="badge bg-secondary">{{ stats.OTRO }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

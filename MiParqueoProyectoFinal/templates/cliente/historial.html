@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Reservas - MiParqueo{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6">
+            <i class="bi bi-clock-history text-primary"></i> 
+            Historial de Reservas
+        </h1>
+        <p class="text-muted">Todas sus reservas registradas en el sistema</p>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{% url 'cliente_disponibilidad' %}" class="btn btn-primary">
+            <i class="bi bi-calendar-plus"></i> Nueva Reserva
+        </a>
+        <a href="{% url 'cliente_reservas_activas' %}" class="btn btn-outline-primary">
+            <i class="bi bi-calendar-check"></i> Ver Reservas Activas
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% if reservas %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th><i class="bi bi-hash"></i> ID</th>
+                        <th><i class="bi bi-car-front"></i> Espacio</th>
+                        <th><i class="bi bi-calendar"></i> Fecha</th>
+                        <th><i class="bi bi-clock"></i> Horario Reservado</th>
+                        <th><i class="bi bi-clock-fill"></i> Hora Real</th>
+                        <th><i class="bi bi-truck"></i> Vehículo</th>
+                        <th><i class="bi bi-tag"></i> Placa</th>
+                        <th><i class="bi bi-info-circle"></i> Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reserva in reservas %}
+                    <tr>
+                        <td><strong>#{{ reserva.id }}</strong></td>
+                        <td>
+                            <span class="badge bg-secondary">
+                                {{ reserva.espacio.numero }}
+                            </span>
+                        </td>
+                        <td>{{ reserva.fecha|date:"d/m/Y" }}</td>
+                        <td class="text-nowrap">
+                            {{ reserva.hora_inicio|time:"H:i" }} - 
+                            {{ reserva.hora_fin|time:"H:i" }}
+                        </td>
+                        <td class="text-nowrap">
+                            {% if reserva.hora_entrada %}
+                                <small>
+                                    <i class="bi bi-box-arrow-in-right text-success"></i>
+                                    {{ reserva.hora_entrada|time:"H:i" }}
+                                </small>
+                                <br>
+                            {% endif %}
+                            {% if reserva.hora_salida %}
+                                <small>
+                                    <i class="bi bi-box-arrow-right text-danger"></i>
+                                    {{ reserva.hora_salida|time:"H:i" }}
+                                </small>
+                            {% endif %}
+                            {% if not reserva.hora_entrada %}
+                                <small class="text-muted">-</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ reserva.get_tipo_vehiculo_display }}</td>
+                        <td><code>{{ reserva.placa }}</code></td>
+                        <td>
+                            {% if reserva.estado == 'RESERVADA' %}
+                                <span class="badge bg-success">{{ reserva.get_estado_display }}</span>
+                            {% elif reserva.estado == 'COMPLETADA' %}
+                                <span class="badge bg-primary">{{ reserva.get_estado_display }}</span>
+                            {% elif reserva.estado == 'CANCELADA' %}
+                                <span class="badge bg-secondary">{{ reserva.get_estado_display }}</span>
+                            {% elif reserva.estado == 'VENCIDA' %}
+                                <span class="badge bg-warning text-dark">{{ reserva.get_estado_display }}</span>
+                            {% else %}
+                                <span class="badge bg-info">{{ reserva.get_estado_display }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="alert alert-light mt-3">
+            <strong>Total de reservas:</strong> {{ reservas.count }}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i>
+            No tiene reservas registradas en el sistema.
+            <a href="{% url 'cliente_disponibilidad' %}" class="alert-link">
+                Crear su primera reserva
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

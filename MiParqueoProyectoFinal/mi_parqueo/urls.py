@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth.views import LogoutView
 from core.views import CustomLoginView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     # Panel de administración
@@ -30,3 +32,8 @@ urlpatterns = [
     # URLs de la aplicación core
     path('', include('core.urls')),
 ]
+
+# Servir archivos media en modo DEBUG
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

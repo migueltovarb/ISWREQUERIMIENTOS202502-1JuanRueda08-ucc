@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.db.models import Q
 from datetime import datetime, date, timedelta
 from .models import EspacioParqueadero, Reserva, Incidencia
+from .utils import generar_qr_reserva
 
 
 # ============================================================
@@ -137,12 +138,22 @@ def cliente_crear_reserva(request, espacio_id):
                 estado='RESERVADA'
             )
             
+            # Generar código QR para la reserva
+            try:
+                ruta_qr = generar_qr_reserva(reserva)
+                reserva.codigo_qr = ruta_qr
+                reserva.save()
+            except Exception as e:
+                # Si falla la generación del QR, continuar sin QR
+                # La reserva ya fue creada exitosamente
+                print(f"Error al generar QR: {str(e)}")
+            
             # Cambiar estado del espacio a RESERVADO
             espacio.estado = 'RESERVADO'
             espacio.save()
             
-            messages.success(request, f'Reserva creada exitosamente para el espacio {espacio.numero}.')
-            return redirect('cliente_reservas_activas')
+            messages.success(request, f'Reserva creada exitosamente para el espacio {espacio.numero}. Código QR generado.')
+            return redirect('cliente_confirmacion_reserva', reserva_id=reserva.id)
             
         except Exception as e:
             messages.error(request, f'Error al crear la reserva: {str(e)}')
@@ -221,6 +232,21 @@ def cliente_historial(request):
         'es_cliente': True,
     }
     return render(request, 'cliente/historial.html', context)
+
+
+@login_required
+def cliente_confirmacion_reserva(request, reserva_id):
+    """
+    Vista de confirmación después de crear una reserva.
+    Muestra el código QR generado y los detalles de la reserva.
+    """
+    reserva = get_object_or_404(Reserva, id=reserva_id, usuario=request.user)
+    
+    context = {
+        'reserva': reserva,
+        'es_cliente': True,
+    }
+    return render(request, 'cliente/confirmacion_reserva.html', context)
 
 
 # ============================================================

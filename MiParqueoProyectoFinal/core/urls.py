@@ -11,6 +11,7 @@ urlpatterns = [
     path('cliente/reservas-activas/', views.cliente_reservas_activas, name='cliente_reservas_activas'),
     path('cliente/cancelar-reserva/<int:reserva_id>/', views.cliente_cancelar_reserva, name='cliente_cancelar_reserva'),
     path('cliente/historial/', views.cliente_historial, name='cliente_historial'),
+    path('cliente/confirmacion/<int:reserva_id>/', views.cliente_confirmacion_reserva, name='cliente_confirmacion_reserva'),
     
     # URLs para VIGILANTE
     path('vigilante/validar-placa/', views.vigilante_validar_placa, name='vigilante_validar_placa'),

@@ -65,6 +65,9 @@ class Reserva(models.Model):
     hora_entrada = models.TimeField(null=True, blank=True, verbose_name='Hora de entrada real')
     hora_salida = models.TimeField(null=True, blank=True, verbose_name='Hora de salida real')
     
+    # Campo para código QR
+    codigo_qr = models.CharField(max_length=255, blank=True, null=True, verbose_name='Código QR')
+    
     # Campos de auditoría
     creado_en = models.DateTimeField(auto_now_add=True, verbose_name='Creado en')
     actualizado_en = models.DateTimeField(auto_now=True, verbose_name='Actualizado en')

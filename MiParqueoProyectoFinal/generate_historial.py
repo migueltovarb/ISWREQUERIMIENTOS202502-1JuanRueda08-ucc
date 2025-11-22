@@ -1,4 +1,5 @@
-{% extends 'base.html' %}
+
+content = """{% extends 'base.html' %}
 
 {% block title %}Historial de Reservas - MiParqueo{% endblock %}
 
@@ -154,3 +155,9 @@
     }
 </style>
 {% endblock %}
+"""
+
+with open('templates/cliente/historial.html', 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("Archivo generado correctamente")

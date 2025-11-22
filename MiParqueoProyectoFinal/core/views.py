@@ -249,6 +249,92 @@ def cliente_confirmacion_reserva(request, reserva_id):
     return render(request, 'cliente/confirmacion_reserva.html', context)
 
 
+@login_required
+def cliente_modificar_reserva(request, reserva_id):
+    """
+    Permite al cliente modificar una reserva existente.
+    Reglas:
+    1. Solo reservas propias y en estado RESERVADA.
+    2. Modificación permitida solo si faltan > 15 minutos para el inicio.
+    3. Nuevo horario no debe solaparse con otras reservas.
+    """
+    reserva = get_object_or_404(Reserva, id=reserva_id, usuario=request.user)
+    
+    # Validar estado
+    if reserva.estado != 'RESERVADA':
+        messages.error(request, 'Solo se pueden modificar reservas activas.')
+        return redirect('cliente_historial')
+    
+    # Validar tiempo mínimo (15 min antes)
+    ahora = timezone.now()
+    inicio_reserva = timezone.make_aware(datetime.combine(reserva.fecha, reserva.hora_inicio))
+    tiempo_restante = inicio_reserva - ahora
+    
+    if tiempo_restante.total_seconds() < 900:  # 15 minutos * 60 segundos
+        messages.error(request, 'No puede modificar una reserva a menos de 15 minutos de su inicio.')
+        return redirect('cliente_historial')
+        
+    if request.method == 'POST':
+        nueva_fecha_str = request.POST.get('fecha')
+        nueva_hora_inicio_str = request.POST.get('hora_inicio')
+        nueva_hora_fin_str = request.POST.get('hora_fin')
+        
+        try:
+            nueva_fecha = datetime.strptime(nueva_fecha_str, '%Y-%m-%d').date()
+            nueva_hora_inicio = datetime.strptime(nueva_hora_inicio_str, '%H:%M').time()
+            nueva_hora_fin = datetime.strptime(nueva_hora_fin_str, '%H:%M').time()
+            
+            # Re-validar tiempo mínimo con la fecha original (por seguridad)
+            if tiempo_restante.total_seconds() < 900:
+                messages.error(request, 'El tiempo límite para modificar ha expirado.')
+                return redirect('cliente_historial')
+                
+            # Validar que la nueva fecha/hora sea futura
+            nuevo_inicio = timezone.make_aware(datetime.combine(nueva_fecha, nueva_hora_inicio))
+            if nuevo_inicio <= ahora:
+                messages.error(request, 'La nueva fecha y hora deben ser futuras.')
+            else:
+                # Validar solapamiento (excluyendo la reserva actual)
+                solapamiento = Reserva.objects.filter(
+                    espacio=reserva.espacio,
+                    fecha=nueva_fecha,
+                    estado='RESERVADA'
+                ).exclude(id=reserva.id).filter(
+                    Q(hora_inicio__lt=nueva_hora_fin) & Q(hora_fin__gt=nueva_hora_inicio)
+                ).exists()
+                
+                if solapamiento:
+                    messages.error(request, 'El espacio no está disponible en el nuevo horario seleccionado.')
+                else:
+                    # Todo válido, guardar cambios
+                    reserva.fecha = nueva_fecha
+                    reserva.hora_inicio = nueva_hora_inicio
+                    reserva.hora_fin = nueva_hora_fin
+                    
+                    # Regenerar QR con los nuevos datos
+                    try:
+                        ruta_qr = generar_qr_reserva(reserva)
+                        reserva.codigo_qr = ruta_qr
+                    except Exception as e:
+                        print(f"Error al regenerar QR: {str(e)}")
+                        
+                    reserva.save()
+                    messages.success(request, 'Reserva modificada exitosamente.')
+                    return redirect('cliente_historial')
+                    
+        except ValueError:
+            messages.error(request, 'Formato de fecha u hora inválido.')
+            
+    context = {
+        'reserva': reserva,
+        'fecha_actual_iso': reserva.fecha.strftime('%Y-%m-%d'),
+        'hora_inicio_iso': reserva.hora_inicio.strftime('%H:%M'),
+        'hora_fin_iso': reserva.hora_fin.strftime('%H:%M'),
+        'min_date': date.today().strftime('%Y-%m-%d'),
+    }
+    return render(request, 'cliente/modificar_reserva.html', context)
+
+
 # ============================================================
 # VISTAS PARA VIGILANTE
 # ============================================================

@@ -70,12 +70,12 @@ python manage.py runserver
 ## 🔑 Credenciales de Prueba
 
 ### Vigilante
-- **Usuario**: `vigilante`
-- **Contraseña**: `vigilante123`
+- **Usuario**: `vigilantejose@campusucc.edu.co`
+- **Contraseña**: `vigivigi123`
 - **Acceso**: Será redirigido a la vista de validación de placas
 
 ### Clientes
-- **Usuario**: `cliente1`, `cliente2` o `cliente3`
+- **Usuario**: `mariagonzalez@campusucc.edu.co`, `carlosrodriguez@campusucc.edu.co` o `anamartinez@campusucc.edu.co`
 - **Contraseña**: `cliente123`
 - **Acceso**: Serán redirigidos a la vista de disponibilidad de espacios
 
@@ -257,10 +257,10 @@ python -m django --version
 - [ ] Sistema de notificaciones por email
 - [ ] Reportes y estadísticas avanzadas
 - [ ] API REST para integración con apps móviles
-- [ ] Sistema de pagos para reservas
 - [ ] Gestión completa de incidencias
 - [ ] Dashboard con gráficos en tiempo real
 - [ ] Exportación de reportes en PDF/Excel
+- [ ] Validacion QR por medios moviles
 
 ## 👨‍💻 Desarrollo
 
@@ -273,7 +273,5 @@ python -m django --version
 
 Este proyecto fue desarrollado como parte de un sistema académico universitario.
 
----
 
-**MiParqueo** - Sistema de Gestión de Parqueaderos Universitarios © 2025
 

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .admin-sidebar {
+        min-height: calc(100vh - 56px);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .admin-sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 12px 20px;
+        margin: 4px 0;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+
+    .admin-sidebar .nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        transform: translateX(5px);
+    }
+
+    .admin-sidebar .nav-link.active {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-weight: 600;
+    }
+
+    .admin-sidebar .nav-link i {
+        width: 20px;
+        margin-right: 10px;
+    }
+
+    .admin-content {
+        background: #f8f9fa;
+        min-height: calc(100vh - 56px);
+        padding: 30px;
+    }
+
+    .stat-card {
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card .stat-icon {
+        font-size: 2.5rem;
+        opacity: 0.8;
+    }
+
+    .stat-card .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 10px 0;
+    }
+
+    .stat-card .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-0">
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 admin-sidebar">
+        <div class="p-3">
+            <h5 class="mb-4">
+                <i class="bi bi-shield-lock"></i> Panel Admin
+            </h5>
+
+            <nav class="nav flex-column">
+                <a class="nav-link {% if request.resolver_match.url_name == 'admin_panel_dashboard' %}active{% endif %}"
+                    href="{% url 'admin_panel_dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+
+                <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
+
+                <h6 class="px-3 mt-3 mb-2" style="opacity: 0.7; font-size: 0.75rem; text-transform: uppercase;">
+                    Gestión de Usuarios
+                </h6>
+                <a class="nav-link {% if 'usuarios' in request.path %}active{% endif %}"
+                    href="{% url 'admin_usuarios_listar' %}">
+                    <i class="bi bi-people"></i> Usuarios
+                </a>
+                <a class="nav-link" href="{% url 'admin_usuarios_crear' %}">
+                    <i class="bi bi-person-plus"></i> Nuevo Usuario
+                </a>
+
+                <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
+
+                <h6 class="px-3 mt-3 mb-2" style="opacity: 0.7; font-size: 0.75rem; text-transform: uppercase;">
+                    Gestión de Espacios
+                </h6>
+                <a class="nav-link {% if 'espacios' in request.path %}active{% endif %}"
+                    href="{% url 'admin_espacios_listar' %}">
+                    <i class="bi bi-car-front"></i> Espacios
+                </a>
+                <a class="nav-link" href="{% url 'admin_espacios_crear' %}">
+                    <i class="bi bi-plus-circle"></i> Nuevo Espacio
+                </a>
+
+                <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
+
+                <a class="nav-link" href="{% url 'home' %}">
+                    <i class="bi bi-arrow-left"></i> Volver al Sistema
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9 col-lg-10 admin-content">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% block admin_content %}
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}

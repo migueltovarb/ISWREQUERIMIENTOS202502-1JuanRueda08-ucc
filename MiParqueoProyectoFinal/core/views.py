@@ -25,11 +25,15 @@ class CustomLoginView(LoginView):
     def get_success_url(self):
         user = self.request.user
         
+        # Si es superuser, va al panel de administración
+        if user.is_superuser:
+            return '/admin-panel/'
+        
         # Si pertenece al grupo VIGILANTE
         if user.groups.filter(name='VIGILANTE').exists():
             return '/vigilante/validar-placa/'
         
-        # Usuario normal (cliente) o superuser - ambos van a disponibilidad
+        # Usuario normal (cliente)
         return '/cliente/disponibilidad/'
 
 
@@ -38,15 +42,18 @@ def home_view(request):
     """
     Vista principal que redirige según el rol del usuario.
     Esta vista se ejecuta cuando se ingresa a LOGIN_REDIRECT_URL.
-    Todos los usuarios (incluido superuser) van a la misma vista home.
     """
     user = request.user
+    
+    # Si es superuser, va al panel de administración
+    if user.is_superuser:
+        return redirect('admin_panel_dashboard')
     
     # Si pertenece al grupo VIGILANTE
     if user.groups.filter(name='VIGILANTE').exists():
         return redirect('vigilante_validar_placa')
     
-    # Usuario normal (cliente) o superuser - ambos van a disponibilidad
+    # Usuario normal (cliente)
     return redirect('cliente_disponibilidad')
 
 
@@ -588,3 +595,314 @@ def listar_incidencias(request):
         'es_vigilante': es_vigilante or es_admin,  # Superuser también ve menú de vigilante
     }
     return render(request, 'vigilante/listar_incidencias.html', context)
+
+
+# ============================================================
+# VISTAS PARA PANEL DE ADMINISTRACIÓN
+# ============================================================
+
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.decorators import user_passes_test
+
+def es_superuser(user):
+    """Verifica que el usuario sea superuser"""
+    return user.is_superuser
+
+@login_required
+@user_passes_test(es_superuser)
+def admin_panel_dashboard(request):
+    """
+    Dashboard principal del panel de administración.
+    Muestra estadísticas generales del sistema.
+    """
+    # Estadísticas
+    total_usuarios = User.objects.count()
+    usuarios_activos = User.objects.filter(is_active=True).count()
+    usuarios_inactivos = User.objects.filter(is_active=False).count()
+    
+    total_espacios = EspacioParqueadero.objects.count()
+    espacios_disponibles = EspacioParqueadero.objects.filter(estado='DISPONIBLE').count()
+    espacios_ocupados = EspacioParqueadero.objects.filter(estado='OCUPADO').count()
+    
+    total_reservas = Reserva.objects.count()
+    reservas_activas = Reserva.objects.filter(estado='RESERVADA').count()
+    reservas_completadas = Reserva.objects.filter(estado='COMPLETADA').count()
+    
+    context = {
+        'total_usuarios': total_usuarios,
+        'usuarios_activos': usuarios_activos,
+        'usuarios_inactivos': usuarios_inactivos,
+        'total_espacios': total_espacios,
+        'espacios_disponibles': espacios_disponibles,
+        'espacios_ocupados': espacios_ocupados,
+        'total_reservas': total_reservas,
+        'reservas_activas': reservas_activas,
+        'reservas_completadas': reservas_completadas,
+    }
+    return render(request, 'admin_panel/dashboard.html', context)
+
+
+@login_required
+@user_passes_test(es_superuser)
+def admin_usuarios_listar(request):
+    """
+    Lista todos los usuarios con búsqueda y filtros.
+    """
+    usuarios = User.objects.all().order_by('-date_joined')
+    
+    # Búsqueda
+    search = request.GET.get('search', '')
+    if search:
+        usuarios = usuarios.filter(
+            Q(username__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(email__icontains=search)
+        )
+    
+    # Filtro por estado
+    estado = request.GET.get('estado', '')
+    if estado == 'activo':
+        usuarios = usuarios.filter(is_active=True)
+    elif estado == 'inactivo':
+        usuarios = usuarios.filter(is_active=False)
+    
+    # Filtro por rol
+    rol = request.GET.get('rol', '')
+    if rol == 'vigilante':
+        usuarios = usuarios.filter(groups__name='VIGILANTE')
+    elif rol == 'cliente':
+        usuarios = usuarios.exclude(groups__name='VIGILANTE').exclude(is_superuser=True)
+    elif rol == 'admin':
+        usuarios = usuarios.filter(is_superuser=True)
+    
+    # Pre-calcular roles para evitar lógica compleja en el template
+    usuarios_con_rol = []
+    for usuario in usuarios:
+        if usuario.is_superuser:
+            usuario.rol_display = 'admin'
+        elif usuario.groups.filter(name='VIGILANTE').exists():
+            usuario.rol_display = 'vigilante'
+        else:
+            usuario.rol_display = 'cliente'
+        usuarios_con_rol.append(usuario)
+    
+    context = {
+        'usuarios': usuarios_con_rol,
+        'search': search,
+        'estado': estado,
+        'rol': rol,
+    }
+    return render(request, 'admin_panel/usuarios/listar.html', context)
+
+
+@login_required
+@user_passes_test(es_superuser)
+def admin_usuarios_crear(request):
+    """
+    Crea un nuevo usuario.
+    """
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+        rol = request.POST.get('rol')
+        
+        # Validaciones
+        if not all([username, email, password, password_confirm]):
+            messages.error(request, 'Todos los campos obligatorios deben ser completados.')
+        elif password != password_confirm:
+            messages.error(request, 'Las contraseñas no coinciden.')
+        elif User.objects.filter(username=username).exists():
+            messages.error(request, 'El nombre de usuario ya existe.')
+        elif User.objects.filter(email=email).exists():
+            messages.error(request, 'El email ya está registrado.')
+        else:
+            # Crear usuario
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+            
+            # Asignar rol
+            if rol == 'vigilante':
+                grupo_vigilante, _ = Group.objects.get_or_create(name='VIGILANTE')
+                user.groups.add(grupo_vigilante)
+            elif rol == 'admin':
+                user.is_superuser = True
+                user.is_staff = True
+                user.save()
+            
+            messages.success(request, f'Usuario {username} creado exitosamente.')
+            return redirect('admin_usuarios_listar')
+    
+    return render(request, 'admin_panel/usuarios/crear.html')
+
+
+@login_required
+@user_passes_test(es_superuser)
+def admin_usuarios_editar(request, user_id):
+    """
+    Edita un usuario existente.
+    """
+    usuario = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        usuario.username = request.POST.get('username')
+        usuario.email = request.POST.get('email')
+        usuario.first_name = request.POST.get('first_name')
+        usuario.last_name = request.POST.get('last_name')
+        
+        # Cambiar contraseña solo si se proporciona
+        new_password = request.POST.get('new_password')
+        if new_password:
+            usuario.set_password(new_password)
+        
+        # Actualizar rol
+        rol = request.POST.get('rol')
+        usuario.groups.clear()
+        
+        if rol == 'vigilante':
+            grupo_vigilante, _ = Group.objects.get_or_create(name='VIGILANTE')
+            usuario.groups.add(grupo_vigilante)
+            usuario.is_superuser = False
+            usuario.is_staff = False
+        elif rol == 'admin':
+            usuario.is_superuser = True
+            usuario.is_staff = True
+        else:  # cliente
+            usuario.is_superuser = False
+            usuario.is_staff = False
+        
+        usuario.save()
+        messages.success(request, f'Usuario {usuario.username} actualizado exitosamente.')
+        return redirect('admin_usuarios_listar')
+    
+    # Determinar rol actual
+    if usuario.is_superuser:
+        rol_actual = 'admin'
+    elif usuario.groups.filter(name='VIGILANTE').exists():
+        rol_actual = 'vigilante'
+    else:
+        rol_actual = 'cliente'
+    
+    context = {
+        'usuario': usuario,
+        'rol_actual': rol_actual,
+    }
+    return render(request, 'admin_panel/usuarios/editar.html', context)
+
+
+@login_required
+@user_passes_test(es_superuser)
+def admin_usuarios_toggle_estado(request, user_id):
+    """
+    Activa o desactiva un usuario.
+    """
+    usuario = get_object_or_404(User, id=user_id)
+    
+    # No permitir desactivar al propio usuario
+    if usuario.id == request.user.id:
+        messages.error(request, 'No puedes desactivar tu propia cuenta.')
+        return redirect('admin_usuarios_listar')
+    
+    usuario.is_active = not usuario.is_active
+    usuario.save()
+    
+    estado = 'activado' if usuario.is_active else 'desactivado'
+    messages.success(request, f'Usuario {usuario.username} {estado} exitosamente.')
+    
+    return redirect('admin_usuarios_listar')
+
+
+# ============================================================
+# GESTIÓN DE ESPACIOS DE PARQUEADERO (ADMIN)
+# ============================================================
+
+@login_required
+@user_passes_test(es_superuser)
+def admin_espacios_listar(request):
+    """
+    Lista todos los espacios de parqueadero con búsqueda y filtros.
+    """
+    espacios = EspacioParqueadero.objects.all().order_by('numero')
+    
+    # Búsqueda por número
+    search = request.GET.get('search', '')
+    if search:
+        espacios = espacios.filter(numero__icontains=search)
+    
+    # Filtro por estado
+    estado = request.GET.get('estado', '')
+    if estado:
+        espacios = espacios.filter(estado=estado)
+    
+    context = {
+        'espacios': espacios,
+        'search': search,
+        'estado': estado,
+    }
+    return render(request, 'admin_panel/espacios/listar.html', context)
+
+
+@login_required
+@user_passes_test(es_superuser)
+def admin_espacios_crear(request):
+    """
+    Crea un nuevo espacio de parqueadero.
+    """
+    if request.method == 'POST':
+        numero = request.POST.get('numero')
+        estado = request.POST.get('estado', 'DISPONIBLE')
+        
+        # Validaciones
+        if not numero:
+            messages.error(request, 'El número de espacio es obligatorio.')
+        elif EspacioParqueadero.objects.filter(numero=numero).exists():
+            messages.error(request, f'El espacio {numero} ya existe.')
+        else:
+            # Crear espacio
+            EspacioParqueadero.objects.create(
+                numero=numero,
+                estado=estado
+            )
+            messages.success(request, f'Espacio {numero} creado exitosamente.')
+            return redirect('admin_espacios_listar')
+    
+    return render(request, 'admin_panel/espacios/crear.html')
+
+
+@login_required
+@user_passes_test(es_superuser)
+def admin_espacios_editar(request, espacio_id):
+    """
+    Edita un espacio de parqueadero existente.
+    """
+    espacio = get_object_or_404(EspacioParqueadero, id=espacio_id)
+    
+    if request.method == 'POST':
+        numero = request.POST.get('numero')
+        estado = request.POST.get('estado')
+        
+        # Validar que el número no esté en uso por otro espacio
+        if EspacioParqueadero.objects.filter(numero=numero).exclude(id=espacio_id).exists():
+            messages.error(request, f'El número {numero} ya está en uso por otro espacio.')
+        else:
+            espacio.numero = numero
+            espacio.estado = estado
+            espacio.save()
+            
+            messages.success(request, f'Espacio {numero} actualizado exitosamente.')
+            return redirect('admin_espacios_listar')
+    
+    context = {
+        'espacio': espacio,
+    }
+    return render(request, 'admin_panel/espacios/editar.html', context)
+

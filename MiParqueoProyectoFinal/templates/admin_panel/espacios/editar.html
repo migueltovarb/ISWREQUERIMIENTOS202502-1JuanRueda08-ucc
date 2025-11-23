@@ -1,0 +1,48 @@
+﻿{% extends 'admin_panel/base.html' %}
+
+{% block title %}Editar Espacio - Panel de Administración{% endblock %}
+
+{% block admin_content %}
+<div class="mb-4">
+    <h2 class="display-6">
+        <i class="bi bi-pencil text-warning"></i> Editar Espacio
+    </h2>
+    <p class="text-muted">Modificar información del espacio: <strong>{{ espacio.numero }}</strong></p>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="numero" class="form-label">Número de Espacio *</label>
+                        <input type="text" class="form-control" id="numero" name="numero" value="{{ espacio.numero }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="estado" class="form-label">Estado *</label>
+                        <select class="form-select" id="estado" name="estado" required>
+                            <option value="LIBRE" {% if espacio.estado == "LIBRE" %}selected{% endif %}>Libre</option>
+                            <option value="RESERVADO" {% if espacio.estado == "RESERVADO" %}selected{% endif %}>Reservado</option>
+                            <option value="OCUPADO" {% if espacio.estado == "OCUPADO" %}selected{% endif %}>Ocupado</option>
+                            <option value="BLOQUEADO" {% if espacio.estado == "BLOQUEADO" %}selected{% endif %}>Bloqueado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-save"></i> Guardar Cambios
+                        </button>
+                        <a href="{% url 'admin_espacios_listar' %}" class="btn btn-secondary">
+                            <i class="bi bi-x"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+﻿{% extends 'admin_panel/base.html' %}
+
+{% block title %}Editar Usuario - Panel de Administración{% endblock %}
+
+{% block admin_content %}
+<div class="mb-4">
+    <h2 class="display-6">
+        <i class="bi bi-pencil text-warning"></i> Editar Usuario
+    </h2>
+    <p class="text-muted">Modificar información de: <strong>{{ usuario.username }}</strong></p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">Username *</label>
+                            <input type="text" class="form-control" id="username" name="username" value="{{ usuario.username }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ usuario.email }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ usuario.first_name }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Apellido</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ usuario.last_name }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">Nueva Contraseña (dejar en blanco para no cambiar)</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="rol" class="form-label">Rol *</label>
+                        <select class="form-select" id="rol" name="rol" required>
+                            <option value="cliente" {% if rol_actual == "cliente" %}selected{% endif %}>Cliente</option>
+                            <option value="vigilante" {% if rol_actual == "vigilante" %}selected{% endif %}>Vigilante</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-save"></i> Guardar Cambios
+                        </button>
+                        <a href="{% url 'admin_usuarios_listar' %}" class="btn btn-secondary">
+                            <i class="bi bi-x"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

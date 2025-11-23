@@ -1,0 +1,139 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Dashboard - Panel de Administración{% endblock %}
+
+{% block admin_content %}
+<div class="mb-4">
+    <h2 class="display-6">
+        <i class="bi bi-speedometer2 text-primary"></i> Dashboard
+    </h2>
+    <p class="text-muted">Vista general del sistema MiParqueo</p>
+</div>
+
+<!-- Estadísticas de Usuarios -->
+<h4 class="mb-3"><i class="bi bi-people"></i> Usuarios</h4>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card stat-card bg-primary text-white">
+            <div class="stat-icon">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-value">{{ total_usuarios }}</div>
+            <div class="stat-label" style="color: rgba(255,255,255,0.8);">Total Usuarios</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card bg-success text-white">
+            <div class="stat-icon">
+                <i class="bi bi-person-check-fill"></i>
+            </div>
+            <div class="stat-value">{{ usuarios_activos }}</div>
+            <div class="stat-label" style="color: rgba(255,255,255,0.8);">Usuarios Activos</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card bg-secondary text-white">
+            <div class="stat-icon">
+                <i class="bi bi-person-x-fill"></i>
+            </div>
+            <div class="stat-value">{{ usuarios_inactivos }}</div>
+            <div class="stat-label" style="color: rgba(255,255,255,0.8);">Usuarios Inactivos</div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas de Espacios -->
+<h4 class="mb-3 mt-4"><i class="bi bi-car-front"></i> Espacios de Parqueadero</h4>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card stat-card bg-info text-white">
+            <div class="stat-icon">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+            </div>
+            <div class="stat-value">{{ total_espacios }}</div>
+            <div class="stat-label" style="color: rgba(255,255,255,0.8);">Total Espacios</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card bg-success text-white">
+            <div class="stat-icon">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div class="stat-value">{{ espacios_disponibles }}</div>
+            <div class="stat-label" style="color: rgba(255,255,255,0.8);">Disponibles</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card bg-warning text-dark">
+            <div class="stat-icon">
+                <i class="bi bi-car-front-fill"></i>
+            </div>
+            <div class="stat-value">{{ espacios_ocupados }}</div>
+            <div class="stat-label">Ocupados</div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas de Reservas -->
+<h4 class="mb-3 mt-4"><i class="bi bi-calendar-check"></i> Reservas</h4>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card stat-card bg-primary text-white">
+            <div class="stat-icon">
+                <i class="bi bi-calendar3"></i>
+            </div>
+            <div class="stat-value">{{ total_reservas }}</div>
+            <div class="stat-label" style="color: rgba(255,255,255,0.8);">Total Reservas</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card bg-success text-white">
+            <div class="stat-icon">
+                <i class="bi bi-calendar-check-fill"></i>
+            </div>
+            <div class="stat-value">{{ reservas_activas }}</div>
+            <div class="stat-label" style="color: rgba(255,255,255,0.8);">Activas</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card bg-info text-white">
+            <div class="stat-icon">
+                <i class="bi bi-check2-all"></i>
+            </div>
+            <div class="stat-value">{{ reservas_completadas }}</div>
+            <div class="stat-label" style="color: rgba(255,255,255,0.8);">Completadas</div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos Rápidos -->
+<div class="card mt-4 shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="bi bi-lightning-fill"></i> Accesos Rápidos</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'admin_usuarios_crear' %}" class="btn btn-primary w-100">
+                    <i class="bi bi-person-plus"></i> Nuevo Usuario
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'admin_usuarios_listar' %}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-people"></i> Ver Usuarios
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'admin_espacios_crear' %}" class="btn btn-success w-100">
+                    <i class="bi bi-plus-circle"></i> Nuevo Espacio
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'admin_espacios_listar' %}" class="btn btn-outline-success w-100">
+                    <i class="bi bi-car-front"></i> Ver Espacios
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

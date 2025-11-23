@@ -24,5 +24,20 @@ urlpatterns = [
     # URLs para INCIDENCIAS (Vigilante y Admin)
     path('incidencias/registrar/', views.registrar_incidencia, name='registrar_incidencia'),
     path('incidencias/listar/', views.listar_incidencias, name='listar_incidencias'),
+    
+    # URLs para PANEL DE ADMINISTRACIÓN
+    path('admin-panel/', views.admin_panel_dashboard, name='admin_panel_dashboard'),
+    
+    # Gestión de Usuarios
+    path('admin-panel/usuarios/', views.admin_usuarios_listar, name='admin_usuarios_listar'),
+    path('admin-panel/usuarios/crear/', views.admin_usuarios_crear, name='admin_usuarios_crear'),
+    path('admin-panel/usuarios/editar/<int:user_id>/', views.admin_usuarios_editar, name='admin_usuarios_editar'),
+    path('admin-panel/usuarios/toggle/<int:user_id>/', views.admin_usuarios_toggle_estado, name='admin_usuarios_toggle_estado'),
+    
+    # Gestión de Espacios
+    path('admin-panel/espacios/', views.admin_espacios_listar, name='admin_espacios_listar'),
+    path('admin-panel/espacios/crear/', views.admin_espacios_crear, name='admin_espacios_crear'),
+    path('admin-panel/espacios/editar/<int:espacio_id>/', views.admin_espacios_editar, name='admin_espacios_editar'),
 ]
+
 

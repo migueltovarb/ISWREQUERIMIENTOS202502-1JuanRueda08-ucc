@@ -1,0 +1,97 @@
+﻿{% extends 'admin_panel/base.html' %}
+
+{% block title %}Espacios - Panel de Administración{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="display-6">
+            <i class="bi bi-grid-3x3-gap text-warning"></i> Gestión de Espacios
+        </h2>
+        <p class="text-muted">Administra los espacios de parqueadero</p>
+    </div>
+    <a href="{% url 'admin_espacios_crear' %}" class="btn btn-warning">
+        <i class="bi bi-plus-circle"></i> Nuevo Espacio
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Estado</label>
+                <select name="estado" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="LIBRE" {% if estado == "LIBRE" %}selected{% endif %}>Libres</option>
+                    <option value="RESERVADO" {% if estado == "RESERVADO" %}selected{% endif %}>Reservados</option>
+                    <option value="OCUPADO" {% if estado == "OCUPADO" %}selected{% endif %}>Ocupados</option>
+                    <option value="BLOQUEADO" {% if estado == "BLOQUEADO" %}selected{% endif %}>Bloqueados</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-warning w-100">
+                    <i class="bi bi-filter"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de Espacios -->
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Número</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for espacio in espacios %}
+                    <tr>
+                        <td><strong>#{{ espacio.id }}</strong></td>
+                        <td>
+                            <h5><span class="badge bg-secondary">{{ espacio.numero }}</span></h5>
+                        </td>
+                        <td>
+                            {% if espacio.estado == "LIBRE" %}
+                                <span class="badge bg-success">Libre</span>
+                            {% elif espacio.estado == "RESERVADO" %}
+                                <span class="badge bg-warning text-dark">Reservado</span>
+                            {% elif espacio.estado == "OCUPADO" %}
+                                <span class="badge bg-danger">Ocupado</span>
+                            {% elif espacio.estado == "BLOQUEADO" %}
+                                <span class="badge bg-secondary">Bloqueado</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark">{{ espacio.estado }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'admin_espacios_editar' espacio.id %}" class="btn btn-sm btn-warning"
+                                title="Editar">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">
+                            No se encontraron espacios de parqueadero
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-3">
+            <strong>Total:</strong> {{ espacios|length }} espacio{{ espacios|length|pluralize }}
+        </div>
+    </div>
+</div>
+{% endblock %}
